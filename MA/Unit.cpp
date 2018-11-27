@@ -17,8 +17,8 @@ Unit::Unit(
 	int y,
 	int width,
 	int height,
-	int positionX,
-	int positionY,
+	float positionX,
+	float positionY,
 	float speed,
 	Color mask,
 	int direction,
@@ -49,34 +49,37 @@ Unit::Unit(
 	Unit::sprite.setTextureRect(IntRect(Unit::pointX, Unit::pointY, Unit::width, Unit::height));
 }
 
-int Unit::getPositionX()
+float Unit::getPositionX()
 {
 	return Unit::positionX;
 }
 
-void Unit::setPosisionX(int positionX)
+void Unit::setPosisionX(float positionX)
 {
+	Unit::setState();
 	Unit::positionX = positionX;
 }
 
-int Unit::getPositionY()
+float Unit::getPositionY()
 {
 	return Unit::positionY;
 }
 
-void Unit::setPositionY(int positionY)
+void Unit::setPositionY(float positionY)
 {
+	Unit::setState();
 	Unit::positionY = positionY;
 }
 
-void Unit::getPosition(int *&positionXY)
+void Unit::getPosition(float *&positionXY)
 {
 	positionXY[0] = Unit::directionX;
 	positionXY[1] = Unit::directionY;
 }
 
-void Unit::setPosition(int positionX, int positionY)
+void Unit::setPosition(float positionX, float positionY)
 {
+	Unit::setState();
 	Unit::setPosisionX(positionX);
 	Unit::setPositionY(positionY);
 }
@@ -89,6 +92,7 @@ int Unit::getPointX()
 
 void Unit::setPointX(int pointX)
 {
+	Unit::setState();
 	Unit::pointX = pointX;
 }
 
@@ -99,6 +103,7 @@ int Unit::getPointY()
 
 void Unit::setPointY(int pointY)
 {
+	Unit::setState();
 	Unit::pointY = pointY;
 }
 
@@ -111,6 +116,7 @@ void Unit::getPoint(int *&pointXY)
 
 void Unit::setPoint(int pointX, int pointY)
 {
+	Unit::setState();
 	Unit::setPointX(pointX);
 	Unit::setPointY(pointY);
 }
@@ -122,6 +128,7 @@ int Unit::getWidth()
 
 void Unit::setWidth(int width)
 {
+	Unit::setState();
 	Unit::width = width;
 }
 
@@ -132,6 +139,7 @@ int Unit::getHeight()
 
 void Unit::setHeight(int height)
 {
+	Unit::setState();
 	Unit::height = height;
 }
 
@@ -144,6 +152,7 @@ void Unit::getSize(int *&widthAndHeight)
 
 void Unit::setSize(int width, int height)
 {
+	Unit::setState();
 	Unit::setWidth(width);
 	Unit::setHeight(height);
 }
@@ -159,6 +168,7 @@ void Unit::getRect(int *&XYWH)
 
 void Unit::setRect(int pointX, int pointY, int width, int height)
 {
+	Unit::setState();
 	Unit::setPoint(pointX, pointY);
 	Unit::setSize(width, height);
 }
@@ -170,6 +180,7 @@ float Unit::getScale()
 
 void Unit::setScale(float scale)
 {
+	Unit::setState();
 	Unit::scale = scale;
 }
 
@@ -180,6 +191,7 @@ float Unit::getDirectionX()
 
 void Unit::setDirectionX(float directionX)
 {
+	Unit::setState();
 	Unit::directionX = directionX;
 }
 
@@ -190,6 +202,7 @@ float Unit::getDirextionY()
 
 void Unit::setDirectionY(float directionY)
 {
+	Unit::setState();
 	Unit::directionY = directionY;
 }
 
@@ -202,6 +215,7 @@ void Unit::getDirection(float *&direction)
 
 void Unit::setDirection(float directionX, float directionY)
 {
+	Unit::setState();
 	Unit::setDirectionX(directionX);
 	Unit::setDirectionY(directionY);
 }
@@ -213,6 +227,7 @@ float Unit::getSpeed()
 
 void Unit::setSpeed(float speed)
 {
+	Unit::setState();
 	Unit::speed = speed;
 }
 
@@ -223,8 +238,35 @@ int Unit::getSide()
 
 void Unit::setSide(int side)
 {
+	Unit::setState();
 	Unit::side = side;
 }
+
+void Unit::move(int side, float time)
+{
+	switch (side)
+	{
+
+	case Direction::left:
+		Unit::setPosition(Unit::getPositionX() - speed*Unit::scale, Unit::getPositionY());
+		break;
+
+	case Direction::top:
+		Unit::setPosition(Unit::getPositionX(), Unit::getPositionY() - speed*Unit::scale);
+		break;
+
+	case Direction::right:
+		Unit::setPosition(Unit::getPositionX() + speed*Unit::scale, Unit::getPositionY());
+		break;
+
+	case Direction::bottom:
+		Unit::setPosition(Unit::getPositionX(), Unit::getPositionY() + speed*Unit::scale);
+		break;
+	default:
+		break;
+	}
+}
+
 
 //load Image->Texture->Sprite
 void Unit::loadITS(string filePath, int x, int y, int width, int height, int positionX, int positionY, float speed, Color mask, int direction, float scale)
@@ -241,6 +283,7 @@ void Unit::loadITS(string filePath, int x, int y, int width, int height, int pos
 	Unit::directionX = 0.0F;
 	Unit::directionY = 0.0F;
 	Unit::mask = mask;
+	Unit::setState();
 
 	Unit::image.loadFromFile(Unit::filePath);
 	Unit::image.createMaskFromColor(Unit::mask);
@@ -260,12 +303,47 @@ Sprite &Unit::getSprite()
 
 void Unit::setSprite(Sprite &sprite)
 {
+	Unit::setState();
 	Unit::sprite = sprite;
 }
 
 void Unit::draw(RenderWindow &window)
 {
-	window.draw(Unit::getSprite());
+	if (Unit::state == State::changed)
+	{
+		Unit::update();
+		Unit::switchState();
+	}
+	window.draw(Unit::sprite);
+}
+
+State Unit::getState()
+{
+	return Unit::state;
+}
+
+void Unit::setState(State state)
+{
+	Unit::state = state;
+}
+
+void Unit::switchState()
+{
+	if (Unit::state == State::changed)
+	{
+		Unit::state = State::fine;
+	}
+	else
+	{
+		Unit::state = State::changed;
+	}
+}
+
+void Unit::update()
+{
+	Unit::sprite.setPosition(Unit::positionX, Unit::positionY);
+	Unit::sprite.setScale(Unit::scale, Unit::scale);
+	Unit::sprite.setTextureRect(IntRect(Unit::pointX, Unit::pointY, Unit::width, Unit::height));
 }
 
 //Hero
@@ -286,7 +364,7 @@ Hero::Hero(
 	float speed,
 	Color mask,
 	int direction,
-	float scale) 
+	float scale)
 	:
 	Unit::Unit(
 		filePath,
@@ -301,7 +379,7 @@ Hero::Hero(
 		direction,
 		scale)
 {
-	
+
 }
 
 int Hero::getHealth()
