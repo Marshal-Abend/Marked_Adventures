@@ -1,4 +1,5 @@
 #include "Unit.h"
+#include "Map.h"
 //Unit
 Unit::Unit() {
 	Unit::pointX = 0.0;
@@ -242,7 +243,7 @@ void Unit::setSide(int side)
 	Unit::side = side;
 }
 
-void Unit::move(int side, float time)
+void Unit::move(int side)
 {
 	switch (side)
 	{
@@ -267,6 +268,38 @@ void Unit::move(int side, float time)
 	}
 }
 
+//AABB collision
+void  Unit::collision(Unit &unit, Map &map)
+{
+	static Unit previousState = unit;
+	static string* lmap = map.getMap();
+	for (int i = 0; i < map.getHeight(); i++)
+	{
+		for (int l = 0; l < map.getWidth(); l++)
+		{
+			switch (lmap[i][l])
+			{
+			case '#':
+			{
+				float deltaX = (unit.getPositionX() + unit.getWidth()* unit.getScale()) - (float)(i * map.getBlockWidth() + map.getBlockWidth()) * unit.getScale();
+				float deltaY = (unit.getPositionY() + unit.getHeight()* unit.getScale()) - (float)(l * map.getBlockHeight() + map.getBlockHeight()) * unit.getScale();
+				float colX = abs(deltaX) - (map.getBlockWidth() - 32.0F)* unit.getScale();
+				float colY = abs(deltaY) - (map.getBlockHeight() - 32.0F)* unit.getScale();
+				if (colX < 0.0F && colY < 0.0F)
+				{
+					unit = previousState;
+					return;
+				}
+				break;
+			}
+			default:
+				break;
+			}
+		}
+
+	}
+	previousState = unit;
+}
 
 //load Image->Texture->Sprite
 void Unit::loadITS(string filePath, int x, int y, int width, int height, int positionX, int positionY, float speed, Color mask, int direction, float scale)
@@ -345,6 +378,8 @@ void Unit::update()
 	Unit::sprite.setScale(Unit::scale, Unit::scale);
 	Unit::sprite.setTextureRect(IntRect(Unit::pointX, Unit::pointY, Unit::width, Unit::height));
 }
+
+
 
 //Hero
 Hero::Hero() : Unit::Unit()

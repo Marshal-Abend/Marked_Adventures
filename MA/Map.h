@@ -29,7 +29,9 @@ class Map {
 	float scale;
 public:
 	Map();
-	Map(int width, int height, string monolitPath = "graphics\\map\\monolit.png", string osozPath = "graphics\\map\\osoz.png", string wallPath = "graphics\\map\\wall-adapted.png", string wayPath = "graphics\\map\\way.png", float scale = 0.1F);
+	Map(int width, int height, string monolitPath = "graphics\\map\\monolit.png", string osozPath = "graphics\\map\\osoz.png", string wallPath = "graphics\\map\\wall-adapted.png", string wayPath = "graphics\\map\\way.png", float scale = 0.35F);
+
+	string *&getMap();
 
 	int getWidth();
 	void setWidth(int width);
@@ -38,6 +40,13 @@ public:
 	void getSize(int *&widthAndHeight);	//defined array of 2 ints as argument
 	void setSize(int width, int height);
 
+	int getBlockWidth();
+	void setBlockWidth(int blockWidth);
+	int getBlockHeight();
+	void setBlockHeight(int blockHeight);
+
+	void getBlock(int *&widthAndHeight);	//defined array of 2 ints as argument
+	void setBlock(int width, int height);
 
 	float getScale();
 	void setScale(float scale);

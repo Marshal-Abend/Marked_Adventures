@@ -1,16 +1,16 @@
 #include "Time.h"
 
-MA::Time::Time()
+MA::Timer::Timer()
 {
-	MA::Time::time = 0.0F;
+	MA::Timer::time = 0.0F;
 }
 
-float MA::Time::getElapsedTime()
+float MA::Timer::getElapsedTime()
 {
-	return MA::Time::clock.getElapsedTime().asSeconds();
+	return MA::Timer::clock.getElapsedTime().asSeconds();
 }
 
-void MA::Time::reset()
+void MA::Timer::reset()
 {
-	MA::Time::clock.restart();
+	MA::Timer::clock.restart();
 }

@@ -1,6 +1,8 @@
 #pragma once
 #include <SFML\Graphics.hpp>
 #include <string>
+#include "Map.h"
+
 
 using namespace std;
 using namespace sf;
@@ -84,10 +86,10 @@ public:
 
 	int getSide();
 	void setSide(int side);
-	
-	void move(int side, float time);
 
+	void move(int side);
 
+	void collision(Unit &unit, Map &map);
 
 	//load Image->Texture->Sprite
 	void loadITS(string filePath, int x, int y, int width, int height, int positionX, int positionY, float speed, Color mask, int direction, float scale);

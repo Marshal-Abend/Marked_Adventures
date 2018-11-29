@@ -1,4 +1,5 @@
 #include "Map.h"
+#include "Unit.h"
 #include <vector>
 
 Map::Map()
@@ -47,6 +48,11 @@ Map::Map(int blockWidth, int blockHeight, string monolitPath, string osozPath, s
 }
 
 
+string *&Map::getMap()
+{
+	return Map::map;
+}
+
 int Map::getWidth()
 {
 	return Map::width;
@@ -79,6 +85,40 @@ void Map::setSize(int width, int height)
 	Map::setHeight(height);
 }
 
+int Map::getBlockWidth()
+{
+	return Map::blockWidth;
+}
+
+void Map::setBlockWidth(int blockWidth)
+{
+	Map::blockWidth = blockWidth;
+}
+
+int Map::getBlockHeight()
+{
+	return Map::blockHeight;
+}
+
+void Map::setBlockHeight(int blockHeight)
+{
+	Map::blockHeight = blockHeight;
+}
+
+//defined array of 2 ints as argument
+void Map::getBlock(int *&widthAndHeight)
+{
+	widthAndHeight[0] = Map::blockWidth;
+	widthAndHeight[1] = Map::blockHeight;
+}
+
+void Map::setBlock(int width, int height)
+{
+	setBlockWidth(width);
+	setBlockHeight(height);
+}
+
+
 float Map::getScale()
 {
 	return Map::scale;
@@ -91,8 +131,9 @@ void Map::setScale(float scale)
 
 
 class Pair {
-	int width;
 	int height;
+	int width;
+
 public:
 	Pair()
 	{
@@ -100,10 +141,10 @@ public:
 		height = 0;
 	}
 
-	Pair(int width, int height)
+	Pair(int height, int width)
 	{
-		Pair::width = width;
 		Pair::height = height;
+		Pair::width = width;
 	}
 
 	int getWidth()
@@ -139,30 +180,31 @@ public:
 		{
 			return true;
 		}
+		return false;
 	}
 };
 
-bool isEnd(int totalWidth, int totalHeight, int currentWidth, int currentHeight, vector<Pair> &vect)
+bool isEnd(int totalHeight, int totalWidth, int currentHeight, int currentWidth, vector<Pair> &vect)
 {
-	if (currentWidth < 0)
+	if (currentHeight <= 0)
 	{
 		return true;
 	}
-	else if (currentHeight < 0)
+	else if (currentWidth <= 0)
 	{
 		return true;
 	}
-	else if (currentWidth >= totalWidth)
+	else if (currentHeight >= totalHeight-1)
 	{
 		return true;
 	}
-	else if (currentHeight >= totalHeight)
+	else if (currentWidth >= totalWidth-1)
 	{
 		return true;
 	}
 
-	Pair pair(currentWidth, currentHeight);
-	for (int n = vect.size(); n > 0; n--)
+	Pair pair(currentHeight, currentWidth);
+	for (int n = vect.size() - 1; n > 0; n--)
 	{
 		if (vect[n] == pair)
 		{
@@ -172,15 +214,128 @@ bool isEnd(int totalWidth, int totalHeight, int currentWidth, int currentHeight,
 	return false;
 }
 
+Direction randSide()
+{
+	switch (1 + rand() % 4)
+	{
+	case Direction::left:
+		return Direction::left;
+		break;
 
+	case Direction::top:
+		return Direction::top;
+		break;
 
-void mapInit(string *&map, int width, int height)
+	case Direction::right:
+		return Direction::right;
+		break;
+
+	case Direction::bottom:
+		return Direction::bottom;
+		break;
+
+	default:
+		return Direction::disabled;
+		break;
+	}
+}
+
+Pair getNextPair(Pair prevPair, Direction direction)
+{
+	switch (direction)
+	{
+	case Direction::left:
+	{
+		Pair newPair(prevPair.getHeight(), prevPair.getWidth() - 2);
+		return newPair;
+		break;
+	}
+
+	case Direction::top:
+	{
+		Pair newPair(prevPair.getHeight() - 2, prevPair.getWidth());
+		return newPair;
+		break;
+	}
+
+	case Direction::right:
+	{
+		Pair newPair(prevPair.getHeight(), prevPair.getWidth() + 2);
+		return newPair;
+		break;
+	}
+
+	case Direction::bottom:
+	{
+		Pair newPair(prevPair.getHeight() + 2, prevPair.getWidth());
+		return newPair;
+		break;
+	}
+
+	default:
+		break;
+	}
+	return Pair(-1, -1);
+}
+
+void mapInit(string *&map, int height, int width)
 {
 	for (int i = 0; i < height; i++)
 	{
-		map[i].assign(width, ' ');
+		map[i].assign(width, '#');
+	}
+}
+
+void drawWay(Pair newWay, Direction side, string *&map)
+{
+	switch (side)
+	{
+
+	case Direction::left:
+		map[newWay.getHeight()][newWay.getWidth() - 1] = ' ';
+		map[newWay.getHeight()][newWay.getWidth() - 2] = ' ';
+		break;
+
+	case Direction::top:
+		map[newWay.getHeight() - 1][newWay.getWidth()] = ' ';
+		map[newWay.getHeight() - 2][newWay.getWidth()] = ' ';
+		break;
+
+	case Direction::right:
+		map[newWay.getHeight()][newWay.getWidth() + 1] = ' ';
+		map[newWay.getHeight()][newWay.getWidth() + 2] = ' ';
+		break;
+
+	case Direction::bottom:
+		map[newWay.getHeight() + 1][newWay.getWidth()] = ' ';
+		map[newWay.getHeight() + 2][newWay.getWidth()] = ' ';
+		break;
+
+	default:
+		break;
 	}
 
+}
+
+bool isVisited(Pair pair, vector<Pair> &visited)
+{
+	for (int n = visited.size() - 1; n > 0; n--)
+	{
+		if (visited[n] == pair)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void addVisited(Pair pair, vector<Pair> &visited)
+{
+	visited.push_back(pair);
+}
+
+void setTemplate(string *&map, int height, int width)
+{
 	for (int i = 0; i < width; i++)
 	{
 		map[0][i] = '#';
@@ -204,14 +359,68 @@ void mapInit(string *&map, int width, int height)
 
 string *&Map::generateMap()
 {
-	Map::width = 5 + rand() % 25;
-	Map::height = 5 + rand() % 25;
+	srand(time(0));
+	Map::height = 10 + rand() % 25;
+	if (Map::height % 2 == 0)
+	{
+		Map::height--;
+	}
+	Map::width = 10 + rand() % 25;
+	if (Map::width % 2 == 0)
+	{
+		Map::width--;
+	}
 	static string *map = new string[height];
-	mapInit(map, Map::width, Map::height);
+	mapInit(map, Map::height, Map::width);
 	vector<Pair> vect;
-	vect.push_back(Pair(width / 2, height / 2));
-	map[7][7] = 'O';
-	map[9][9] = 'M';
+	vector<Pair> visited;
+	vect.push_back(Pair(1, 1));
+	while (!vect.empty())
+	{
+		int n = vect.size();
+		int z = visited.size();
+		Direction side = randSide();
+		Pair pair = getNextPair(vect[vect.size() - 1], side);
+		static Pair noWay = vect[vect.size() - 1];
+		static int thinkTwice = 10;
+		if (isEnd(Map::height, Map::width, pair.getHeight(), pair.getWidth(), vect))
+		{
+			if (noWay.getHeight() == 0 && noWay.getWidth() == 9)
+			{
+				int a = 9;
+			}
+			if (thinkTwice > 0)
+			{
+				thinkTwice--;
+				continue;
+			}
+			else
+			{
+				addVisited(vect[vect.size() - 1], visited);
+				vect.pop_back();
+				if (vect.empty())
+				{
+					break;
+				}
+				noWay = vect[vect.size() - 1];
+				thinkTwice = 10;
+			}
+		}
+		else
+		{
+			if (isVisited(pair, visited) || noWay == pair)
+			{
+				continue;
+			}
+
+			drawWay(noWay, side, map);
+			noWay = pair;
+			vect.push_back(pair);
+			thinkTwice = 10;
+		}
+	}
+
+	//setTemplate(map, height, width);
 	return map;
 }
 

@@ -8,12 +8,12 @@ using namespace sf;
 
 namespace MA
 {
-	class Time {
+	class Timer {
 		Clock clock;
 		float time;
 
 	public:
-		Time();
+		Timer();
 		float getElapsedTime();
 		void reset();
 
