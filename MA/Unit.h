@@ -3,22 +3,40 @@
 #include <string>
 #include "Map.h"
 
-
-using namespace std;
-using namespace sf;
-
 enum State {
 	fine,
 	changed
 };
 
 enum  Direction {
-	disabled,
 	left,
 	top,
 	right,
-	bottom
+	bottom,
+	disabled
 };
+
+class Unit;
+
+using namespace std;
+using namespace sf;
+
+class Animation {
+	Unit *target;
+	int totalFrames;
+	float currentFrame;
+	int frameWidth;
+	int frameHeight;
+	float speed;
+	float frameOffset;
+public:
+	Animation();
+	Animation(Unit &unit, int totalFrames, float currentFrame = 0.3F, int frameWidth = 256, int frameHeight = 256, float speed = 0.99F, float offset = 0.0F);
+	void animate(Direction side);
+	Animation &Animation::operator=(const Animation& unit);
+};
+
+
 
 class Unit {
 	float positionX, positionY;
@@ -33,6 +51,7 @@ class Unit {
 	Texture texture;
 	Sprite sprite;
 	State state;
+	Animation animation;
 public:
 	Unit(
 		string filePath,
@@ -48,6 +67,8 @@ public:
 		float scale = 1.0F
 	);
 	Unit();
+	Unit(const Unit &unit);
+	Unit &operator=(const Unit&);
 
 	float getPositionX();
 	void setPosisionX(float positionX);
@@ -87,9 +108,11 @@ public:
 	int getSide();
 	void setSide(int side);
 
-	void move(int side);
+	Direction move(Direction side);
 
 	void collision(Unit &unit, Map &map);
+
+	void animate(Direction side);
 
 	//load Image->Texture->Sprite
 	void loadITS(string filePath, int x, int y, int width, int height, int positionX, int positionY, float speed, Color mask, int direction, float scale);

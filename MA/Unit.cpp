@@ -1,7 +1,7 @@
 #include "Unit.h"
 #include "Map.h"
 //Unit
-Unit::Unit() {
+Unit::Unit() :animation(*this, 20) {
 	Unit::pointX = 0.0;
 	Unit::pointY = 0.0;
 	Unit::width = 0.0;
@@ -24,7 +24,7 @@ Unit::Unit(
 	Color mask,
 	int direction,
 	float scale
-)
+) :animation(*this, 20)
 {
 	Unit::filePath = filePath;
 	Unit::pointX = x;
@@ -48,6 +48,49 @@ Unit::Unit(
 	Unit::sprite.setPosition((float)Unit::positionX, (float)Unit::positionY);
 	Unit::sprite.setScale(Unit::scale, Unit::scale);
 	Unit::sprite.setTextureRect(IntRect(Unit::pointX, Unit::pointY, Unit::width, Unit::height));
+}
+
+Unit::Unit(const Unit &unit)
+{
+	animation = unit.animation;
+	filePath = unit.filePath;
+	pointX = unit.pointX;
+	pointY = unit.pointY;
+	width = unit.width;
+	height = unit.height;
+	side = unit.side;
+	positionX = unit.positionX;
+	positionY = unit.positionY;
+	scale = unit.scale;
+	directionX = unit.directionX;
+	directionY = unit.directionY;
+	mask = unit.mask;
+	speed = unit.speed;
+	state = unit.state;
+	texture = unit.texture;
+	image = unit.image;
+}
+
+Unit &Unit::operator=(const Unit& unit)
+{
+	animation = unit.animation;
+	filePath = unit.filePath;
+	pointX = unit.pointX;
+	pointY = unit.pointY;
+	width = unit.width;
+	height = unit.height;
+	side = unit.side;
+	positionX = unit.positionX;
+	positionY = unit.positionY;
+	scale = unit.scale;
+	directionX = unit.directionX;
+	directionY = unit.directionY;
+	mask = unit.mask;
+	speed = unit.speed;
+	state = unit.state;
+	texture = unit.texture;
+	image = unit.image;
+	return *this;
 }
 
 float Unit::getPositionX()
@@ -243,7 +286,7 @@ void Unit::setSide(int side)
 	Unit::side = side;
 }
 
-void Unit::move(int side)
+Direction Unit::move(Direction side)
 {
 	switch (side)
 	{
@@ -266,6 +309,7 @@ void Unit::move(int side)
 	default:
 		break;
 	}
+	return side;
 }
 
 //AABB collision
@@ -299,6 +343,11 @@ void  Unit::collision(Unit &unit, Map &map)
 
 	}
 	previousState = unit;
+}
+
+void Unit::animate(Direction side)
+{
+	animation.animate(side);
 }
 
 //load Image->Texture->Sprite
@@ -443,3 +492,95 @@ void Hero::create(int health, int damage)
 	setDamage(damage);
 }
 
+
+
+//Animation
+
+Animation::Animation()
+{
+	target = NULL;
+	totalFrames = 0;
+	currentFrame = 0.0F;
+	frameWidth = 0;
+	frameHeight = 0;
+	speed = 0.0F;
+	frameOffset = 0.0F;
+}
+
+Animation::Animation(Unit &unit, int totalFrames, float currentFrame, int frameWidth, int frameHeight, float speed, float frameOffset)
+{
+	Animation::target = &unit;
+	Animation::totalFrames = totalFrames;
+	Animation::currentFrame = currentFrame;
+	Animation::frameWidth = frameWidth;
+	Animation::frameHeight = frameHeight;
+	Animation::speed = speed;
+	Animation::frameOffset = frameOffset;
+}
+
+void Animation::animate(Direction side)
+{
+	static Direction prevSide = side;
+	switch (side)
+	{
+	case Direction::left:
+		if (side == prevSide && Animation::currentFrame < Animation::totalFrames - 1)
+		{
+			Animation::currentFrame += Animation::speed;
+			
+		}
+		else
+		{
+			Animation::currentFrame = 0.F;
+			prevSide = Direction::left;
+		}
+		break;
+	case Direction::top:
+		if (side == prevSide && Animation::currentFrame < Animation::totalFrames - 1)
+		{
+			Animation::currentFrame += Animation::speed;
+		}
+		else
+		{
+			Animation::currentFrame = 0.F;
+			prevSide = Direction::top;
+		}
+		break;
+	case Direction::right:
+		if (side == prevSide && Animation::currentFrame < Animation::totalFrames - 1)
+		{
+			Animation::currentFrame += Animation::speed;
+		}
+		else
+		{
+			Animation::currentFrame = 0.F;
+			prevSide = Direction::right;
+		}
+		break;
+	case Direction::bottom:
+		if (side == prevSide && Animation::currentFrame < Animation::totalFrames - 1)
+		{
+			Animation::currentFrame += Animation::speed;
+		}
+		else
+		{
+			Animation::currentFrame = 0.F;
+			prevSide = Direction::bottom;
+		}
+		break;
+	default:
+		break;
+	}
+	Animation::target->setRect(target->getWidth()*(int)currentFrame, target->getHeight()*side, target->getWidth(), target->getHeight());
+}
+
+Animation &Animation::operator=(const Animation& obj)
+{
+	Animation::totalFrames = obj.totalFrames;
+	Animation::currentFrame = obj.currentFrame;
+	Animation::frameWidth = obj.frameWidth;
+	Animation::frameHeight = obj.frameHeight;
+	Animation::speed = obj.speed;
+	Animation::frameOffset = obj.frameOffset;
+	return *this;
+}

@@ -194,11 +194,11 @@ bool isEnd(int totalHeight, int totalWidth, int currentHeight, int currentWidth,
 	{
 		return true;
 	}
-	else if (currentHeight >= totalHeight-1)
+	else if (currentHeight >= totalHeight - 1)
 	{
 		return true;
 	}
-	else if (currentWidth >= totalWidth-1)
+	else if (currentWidth >= totalWidth - 1)
 	{
 		return true;
 	}
@@ -216,7 +216,8 @@ bool isEnd(int totalHeight, int totalWidth, int currentHeight, int currentWidth,
 
 Direction randSide()
 {
-	switch (1 + rand() % 4)
+	srand((unsigned int)time(0));
+	switch (1 + rand() % 3)
 	{
 	case Direction::left:
 		return Direction::left;
@@ -359,13 +360,13 @@ void setTemplate(string *&map, int height, int width)
 
 string *&Map::generateMap()
 {
-	srand(time(0));
-	Map::height = 10 + rand() % 25;
+	srand((unsigned int)time(0));
+	Map::height = 16 + rand() % 25;
 	if (Map::height % 2 == 0)
 	{
 		Map::height--;
 	}
-	Map::width = 10 + rand() % 25;
+	Map::width = 16 + rand() % 25;
 	if (Map::width % 2 == 0)
 	{
 		Map::width--;
@@ -382,7 +383,7 @@ string *&Map::generateMap()
 		Direction side = randSide();
 		Pair pair = getNextPair(vect[vect.size() - 1], side);
 		static Pair noWay = vect[vect.size() - 1];
-		static int thinkTwice = 10;
+		static int thinkTwice = 100;
 		if (isEnd(Map::height, Map::width, pair.getHeight(), pair.getWidth(), vect))
 		{
 			if (noWay.getHeight() == 0 && noWay.getWidth() == 9)
@@ -403,7 +404,7 @@ string *&Map::generateMap()
 					break;
 				}
 				noWay = vect[vect.size() - 1];
-				thinkTwice = 10;
+				thinkTwice = 100;
 			}
 		}
 		else
@@ -416,7 +417,7 @@ string *&Map::generateMap()
 			drawWay(noWay, side, map);
 			noWay = pair;
 			vect.push_back(pair);
-			thinkTwice = 10;
+			thinkTwice = 100;
 		}
 	}
 
