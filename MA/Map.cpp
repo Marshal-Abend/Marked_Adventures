@@ -1,6 +1,9 @@
 #include "Map.h"
 #include "Unit.h"
 #include <vector>
+#include <iostream>
+
+using namespace std;
 
 Map::Map()
 {
@@ -9,7 +12,7 @@ Map::Map()
 	Map::scale = 0.0F;
 }
 
-Map::Map(int blockWidth, int blockHeight, string monolitPath, string osozPath, string wallPath, string wayPath, float scale)
+Map::Map(int blockWidth, int blockHeight, float scale, Level level, string monolitPath, string osozPath, string wallPath, string wayPath)
 {
 	Map::blockWidth = blockWidth;
 	Map::blockHeight = blockHeight;
@@ -44,7 +47,7 @@ Map::Map(int blockWidth, int blockHeight, string monolitPath, string osozPath, s
 
 
 
-	Map::map = Map::generateMap();
+	Map::map = Map::generateMap(level);
 }
 
 
@@ -127,6 +130,15 @@ float Map::getScale()
 void Map::setScale(float scale)
 {
 	Map::scale = scale;
+	Map::way.setScale(Map::scale, Map::scale);
+	Map::wall.setScale(Map::scale, Map::scale);
+	Map::osoz.setScale(Map::scale, Map::scale);
+	Map::monolit.setScale(Map::scale, Map::scale);
+}
+
+void Map::clear()
+{
+	delete[] Map::map;
 }
 
 
@@ -184,6 +196,41 @@ public:
 	}
 };
 
+bool isVisited(Pair pair, vector<Pair> &visited)
+{
+	for (int n = visited.size() - 1; n >= 0; n--)
+	{
+		if (visited[n] == pair)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool isVisited(Direction pair, vector<Direction> &visited)
+{
+	for (int n = visited.size() - 1; n >= 0; n--)
+	{
+		if (visited[n] == pair)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void addVisited(Pair pair, vector<Pair> &visited)
+{
+	visited.push_back(pair);
+}
+
+void addVisited(Direction pair, vector<Direction> &visited)
+{
+	visited.push_back(pair);
+}
+
+
 bool isEnd(int totalHeight, int totalWidth, int currentHeight, int currentWidth, vector<Pair> &vect)
 {
 	if (currentHeight <= 0)
@@ -204,34 +251,45 @@ bool isEnd(int totalHeight, int totalWidth, int currentHeight, int currentWidth,
 	}
 
 	Pair pair(currentHeight, currentWidth);
-	for (int n = vect.size() - 1; n > 0; n--)
-	{
-		if (vect[n] == pair)
-		{
-			return true;
-		}
-	}
+	if (isVisited(pair, vect))return true;
 	return false;
 }
 
-Direction randSide()
+Direction randSide(vector<Direction> &random)
 {
-	srand((unsigned int)time(0));
-	switch (1 + rand() % 3)
+	srand((unsigned int)rand());
+	Direction pureRandom = Direction(rand() % 4);
+
+
+	if (random.size() == 4)
+	{
+		random.clear();
+	}
+	while (isVisited(pureRandom, random))
+	{
+		pureRandom = Direction(rand() % 4);
+
+	}
+
+	switch (pureRandom)
 	{
 	case Direction::left:
+		addVisited(Direction::left, random);
 		return Direction::left;
 		break;
 
 	case Direction::top:
+		addVisited(Direction::top, random);
 		return Direction::top;
 		break;
 
 	case Direction::right:
+		addVisited(Direction::right, random);
 		return Direction::right;
 		break;
 
 	case Direction::bottom:
+		addVisited(Direction::bottom, random);
 		return Direction::bottom;
 		break;
 
@@ -274,9 +332,10 @@ Pair getNextPair(Pair prevPair, Direction direction)
 	}
 
 	default:
+		return Pair(-1, -1);
 		break;
 	}
-	return Pair(-1, -1);
+
 }
 
 void mapInit(string *&map, int height, int width)
@@ -318,22 +377,18 @@ void drawWay(Pair newWay, Direction side, string *&map)
 
 }
 
-bool isVisited(Pair pair, vector<Pair> &visited)
+
+bool fullStuck(string *&map, Direction side, Pair pair)
 {
-	for (int n = visited.size() - 1; n > 0; n--)
-	{
-		if (visited[n] == pair)
-		{
-			return true;
-		}
-	}
+	unsigned char block = 0;
+	if (map[pair.getHeight() - 1][pair.getWidth()] == '#') block++;
+	if (map[pair.getHeight()][pair.getWidth() - 1] == '#') block++;
+	if (map[pair.getHeight() + 1][pair.getWidth()] == '#') block++;
+	if (map[pair.getHeight()][pair.getWidth() + 1] == '#') block++;
+	if (block == 3) return true;
 	return false;
 }
 
-void addVisited(Pair pair, vector<Pair> &visited)
-{
-	visited.push_back(pair);
-}
 
 void setTemplate(string *&map, int height, int width)
 {
@@ -358,38 +413,54 @@ void setTemplate(string *&map, int height, int width)
 	}
 }
 
-string *&Map::generateMap()
+string *&Map::generateMap(Level level)
 {
-	srand((unsigned int)time(0));
-	Map::height = 16 + rand() % 25;
+	srand((unsigned int)rand());
+	int base;
+	switch (level)
+	{
+	case Level::easy:
+		base = 10;
+		break;
+	case Level::normal:
+		base = 18;
+		break;
+	case Level::hard:
+		base = 28;
+		break;
+	case Level::expert:
+		base = 50;
+		break;
+	default:
+		break;
+	}
+	Map::height = base + rand() % 10;
 	if (Map::height % 2 == 0)
 	{
 		Map::height--;
 	}
-	Map::width = 16 + rand() % 25;
+	Map::width = base + rand() % 10;
 	if (Map::width % 2 == 0)
 	{
 		Map::width--;
 	}
-	static string *map = new string[height];
-	mapInit(map, Map::height, Map::width);
+	static string *mapl;
+	mapl = new string[height];
+	mapInit(mapl, Map::height, Map::width);
 	vector<Pair> vect;
+	vector<Direction> random;
 	vector<Pair> visited;
+	vector<Pair> stucked;
+	mapl[1][1] = ' ';
 	vect.push_back(Pair(1, 1));
+	Pair noWay = vect[vect.size() - 1];
+	int thinkTwice = 4;
 	while (!vect.empty())
 	{
-		int n = vect.size();
-		int z = visited.size();
-		Direction side = randSide();
+		Direction side = randSide(random);
 		Pair pair = getNextPair(vect[vect.size() - 1], side);
-		static Pair noWay = vect[vect.size() - 1];
-		static int thinkTwice = 100;
-		if (isEnd(Map::height, Map::width, pair.getHeight(), pair.getWidth(), vect))
+		if (isEnd(Map::height, Map::width, pair.getHeight(), pair.getWidth(), vect) || isVisited(pair, visited))
 		{
-			if (noWay.getHeight() == 0 && noWay.getWidth() == 9)
-			{
-				int a = 9;
-			}
 			if (thinkTwice > 0)
 			{
 				thinkTwice--;
@@ -397,32 +468,90 @@ string *&Map::generateMap()
 			}
 			else
 			{
-				addVisited(vect[vect.size() - 1], visited);
-				vect.pop_back();
 				if (vect.empty())
 				{
 					break;
 				}
-				noWay = vect[vect.size() - 1];
-				thinkTwice = 100;
+				else
+				{
+					addVisited(vect[vect.size() - 1], visited);
+					cout << "pop " << vect.size() << "\t" << vect[vect.size() - 1].getHeight() << "   " << vect[vect.size() - 1].getWidth() << endl;
+					if (fullStuck(mapl, side, vect[vect.size() - 1]))
+					{
+						addVisited(vect[vect.size() - 1], stucked);
+					}
+					vect.pop_back();
+					if (vect.empty())
+					{
+						break;
+					}
+					noWay = vect[vect.size() - 1];
+
+					thinkTwice = 4;
+				}
+
 			}
 		}
 		else
 		{
-			if (isVisited(pair, visited) || noWay == pair)
-			{
-				continue;
-			}
-
-			drawWay(noWay, side, map);
+			drawWay(noWay, side, mapl);
+			cout << "add " << vect.size() << "\t" << pair.getHeight() << "   " << pair.getWidth() << endl;
+			random.clear();
 			noWay = pair;
-			vect.push_back(pair);
-			thinkTwice = 100;
+			addVisited(pair, vect);
+			thinkTwice = 4;
 		}
 	}
 
+
+	int randomEnds;
+	if (stucked.size() > 2)
+	{
+		randomEnds = rand() % stucked.size();
+		while (stucked[randomEnds].getHeight() < Map::height / 2 && stucked[randomEnds].getWidth() < Map::width / 2)
+		{
+			randomEnds = rand() % stucked.size();
+		}
+		mapl[stucked[randomEnds].getHeight()][stucked[randomEnds].getWidth()] = 'O';
+	}
+	else
+	{
+		randomEnds = rand() % visited.size();
+		while (visited[randomEnds].getHeight() < Map::height / 2 && visited[randomEnds].getWidth() < Map::width / 2)
+		{
+			randomEnds = rand() % visited.size();
+		}
+		mapl[visited[randomEnds].getHeight()][visited[randomEnds].getWidth()] = 'O';
+	}
+
+
+
+
+
+
+	int randomSecondEnds;
+	if (stucked.size() > 2)
+	{
+		randomSecondEnds = rand() % stucked.size();
+		while (randomEnds == randomSecondEnds || stucked[randomSecondEnds].getHeight() < Map::height / 2 && stucked[randomSecondEnds].getWidth() < Map::width / 2)
+		{
+			randomSecondEnds = rand() % stucked.size();
+		}
+		mapl[stucked[randomSecondEnds].getHeight()][stucked[randomSecondEnds].getWidth()] = 'M';
+	}
+	else
+	{
+		randomSecondEnds = rand() % visited.size();
+		while (randomEnds == randomSecondEnds)
+		{
+			randomSecondEnds = rand() % visited.size();
+		}
+		mapl[visited[randomSecondEnds].getHeight()][visited[randomSecondEnds].getWidth()] = 'M';
+	}
+
+
 	//setTemplate(map, height, width);
-	return map;
+	return mapl;
 }
 
 void Map::draw(RenderWindow &window)

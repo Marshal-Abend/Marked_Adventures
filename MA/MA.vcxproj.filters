@@ -30,7 +30,7 @@
     <ClCompile Include="Time.cpp">
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>
-    <ClCompile Include="Animation.cpp">
+    <ClCompile Include="End.cpp">
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>
   </ItemGroup>
@@ -47,7 +47,7 @@
     <ClInclude Include="Time.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
-    <ClInclude Include="Animation.h">
+    <ClInclude Include="End.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
   </ItemGroup>

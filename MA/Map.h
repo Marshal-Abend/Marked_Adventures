@@ -3,6 +3,14 @@
 #include <string>
 
 
+enum Level {
+	easy,
+	normal,
+	hard,
+	expert,
+	cancel
+};
+
 using namespace std;
 using namespace sf;
 
@@ -29,7 +37,7 @@ class Map {
 	float scale;
 public:
 	Map();
-	Map(int width, int height, string monolitPath = "graphics\\map\\monolit.png", string osozPath = "graphics\\map\\osoz.png", string wallPath = "graphics\\map\\wall-adapted.png", string wayPath = "graphics\\map\\way.png", float scale = 0.35F);
+	Map(int width, int height, float scale = 0.35F,Level level = Level::easy, string monolitPath = "graphics\\map\\monolit.png", string osozPath = "graphics\\map\\osoz.png", string wallPath = "graphics\\map\\wall-adapted.png", string wayPath = "graphics\\map\\way.png");
 
 	string *&getMap();
 
@@ -51,7 +59,9 @@ public:
 	float getScale();
 	void setScale(float scale);
 
-	string *&generateMap();
+	string *&generateMap(Level level);
 
 	void draw(RenderWindow &window);
+
+	void clear();
 };

@@ -1,5 +1,7 @@
 #include "Unit.h"
 #include "Map.h"
+#include "End.h"
+
 //Unit
 Unit::Unit() :animation(*this, 20) {
 	Unit::pointX = 0.0;
@@ -316,7 +318,8 @@ Direction Unit::move(Direction side)
 void  Unit::collision(Unit &unit, Map &map)
 {
 	static Unit previousState = unit;
-	static string* lmap = map.getMap();
+	static string* lmap;
+	lmap = map.getMap();
 	for (int i = 0; i < map.getHeight(); i++)
 	{
 		for (int l = 0; l < map.getWidth(); l++)
@@ -332,6 +335,34 @@ void  Unit::collision(Unit &unit, Map &map)
 				if (colX < 0.0F && colY < 0.0F)
 				{
 					unit = previousState;
+					return;
+				}
+				break;
+			}
+
+			case 'O':
+			{
+				float deltaX = (unit.getPositionX() + unit.getWidth()* unit.getScale()) - (float)(i * map.getBlockWidth() + map.getBlockWidth()) * unit.getScale();
+				float deltaY = (unit.getPositionY() + unit.getHeight()* unit.getScale()) - (float)(l * map.getBlockHeight() + map.getBlockHeight()) * unit.getScale();
+				float colX = abs(deltaX) - (map.getBlockWidth() - 32.0F)* unit.getScale();
+				float colY = abs(deltaY) - (map.getBlockHeight() - 32.0F)* unit.getScale();
+				if (colX < 0.0F && colY < 0.0F)
+				{
+					gState = GameState::OMenu;
+					return;
+				}
+				break;
+			}
+
+			case 'M':
+			{
+				float deltaX = (unit.getPositionX() + unit.getWidth()* unit.getScale()) - (float)(i * map.getBlockWidth() + map.getBlockWidth()) * unit.getScale();
+				float deltaY = (unit.getPositionY() + unit.getHeight()* unit.getScale()) - (float)(l * map.getBlockHeight() + map.getBlockHeight()) * unit.getScale();
+				float colX = abs(deltaX) - (map.getBlockWidth() - 32.0F)* unit.getScale();
+				float colY = abs(deltaY) - (map.getBlockHeight() - 32.0F)* unit.getScale();
+				if (colX < 0.0F && colY < 0.0F)
+				{
+					gState = GameState::MMenu;
 					return;
 				}
 				break;
@@ -391,11 +422,12 @@ void Unit::setSprite(Sprite &sprite)
 
 void Unit::draw(RenderWindow &window)
 {
-	if (Unit::state == State::changed)
-	{
-		Unit::update();
-		Unit::switchState();
-	}
+	/*	if (Unit::state == State::changed)
+		{
+			Unit::update();
+			Unit::state = State::fine;
+		}*/
+	Unit::update();
 	window.draw(Unit::sprite);
 }
 
@@ -424,8 +456,8 @@ void Unit::switchState()
 void Unit::update()
 {
 	Unit::sprite.setPosition(Unit::positionX, Unit::positionY);
-	Unit::sprite.setScale(Unit::scale, Unit::scale);
 	Unit::sprite.setTextureRect(IntRect(Unit::pointX, Unit::pointY, Unit::width, Unit::height));
+	Unit::sprite.setScale(Unit::scale, Unit::scale);
 }
 
 
@@ -527,7 +559,7 @@ void Animation::animate(Direction side)
 		if (side == prevSide && Animation::currentFrame < Animation::totalFrames - 1)
 		{
 			Animation::currentFrame += Animation::speed;
-			
+
 		}
 		else
 		{

@@ -1,14 +1,31 @@
 #pragma once
 #include <SFML\Graphics.hpp>
+#include <SFML\Audio.hpp>
 #include <string>
 #include "Map.h"
 
-enum State {
+
+
+enum GameState 
+{
+	Menu,
+	OMenu,
+	MMenu,
+	Game,
+	Pause,
+	Exit
+};
+
+extern GameState gState;
+
+enum State 
+{
 	fine,
 	changed
 };
 
-enum  Direction {
+enum  Direction 
+{
 	left,
 	top,
 	right,
